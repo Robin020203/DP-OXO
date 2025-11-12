@@ -162,11 +162,13 @@ updated board and the new player.
 */
 playHH(_, Board) :-
     and_the_winner_is(Board, Player),
-    report_winner( Player ).
+    report_winner( Player ),
+    !.
 
 playHH(_, Board) :-
     no_more_free_squares(Board),
-    report_stalemate.
+    report_stalemate,
+    !.
 
 playHH(Player, Board) :-
     % GET LEGAL MOVE (to get (X,Y))
