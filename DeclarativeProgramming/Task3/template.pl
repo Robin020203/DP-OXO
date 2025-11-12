@@ -113,10 +113,78 @@ empty_board(board(_, _, _, _, _, _, _, _, _)).
 % 3.5 SPOTTING A WINNER (15%)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+/*
+succeeds when its first argument represents a board, and the second
+is a player who has won on that board. (Hint: use the predicates above here; you need
+3 clauses.)
+*/
+and_the_winner_is(Board, Player) :-
+    is_piece(Player),
+    ( row(_, Board, row(_, Player, Player, Player)) ;
+    column(_, Board, col(_, Player, Player, Player)) ;
+    diagonal(_, Board, dia(_, Player, Player, Player))).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 3.6 RUNNING A GAME FOR 2 HUMAN PLAYERS (20%)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/*
+We will assume that x is always going to start.
+We will use a predicate called playHH/0 (for “play human vs. human”) 
+to begin a game, defined as follows:
+*/
+playHH :- 
+    welcome,
+    initial_board( Board ),
+    display_board( Board ),
+    is_cross( Cross ),
+    playHH( Cross, Board ).
+
+/*
+succeeds if the board represented in its argument has no empty squares in it.
+*/
+no_more_free_squares(Board) :-
+    \+ empty_square(_, _, Board).
+
+
+/*
+playHH/2 is recursive. It has two arguments: a player, the first, and a board state, the
+second. For this section of the practical, it has three possibilities:
+
+1. The board represents a winning state, and we have to report the winner. Then we
+are finished.
+2. There are no more free squares on the board, and we have to report a stalemate.
+Again, we are finished.
+3. We can get a (legal) move from the player named in argument 1, fill the square
+he or she gives, switch players, display the board and then play again, with the
+updated board and the new player.
+*/
+playHH(_, Board) :-
+    and_the_winner_is(Board, Player),
+    report_winner( Player ).
+
+playHH(_, Board) :-
+    no_more_free_squares(Board),
+    report_stalemate.
+
+playHH(Player, Board) :-
+    % GET LEGAL MOVE (to get (X,Y))
+    get_legal_move( Player, X, Y, Board ) ,
+
+    % FILL SQUARE
+    fill_square( X, Y, Player, Board, NewBoard ) ,
+
+    % SWITCH PLAYER
+    other_player(Player, OtherPlayer) ,
+
+    % DISPLAY BOARD
+    display_board( NewBoard ) ,
+
+    % PLAY AGAIN (with updated board and new player)
+    playHH(OtherPlayer, NewBoard).
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
