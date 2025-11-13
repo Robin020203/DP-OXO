@@ -193,11 +193,67 @@ playHH(Player, Board) :-
 % 4. RUNNING A GAME FOR 1 HUMAN AND THE COMPUTER (20%)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+playHC :- 
+    welcome,
+    initial_board( Board ),
+    display_board( Board ),
+    is_cross( Cross ),
+    playHC( Cross, Board ).
+
+playHC(_, Board) :-
+    and_the_winner_is(Board, Player),
+    report_winner( Player ),
+    !.
+
+playHC(_, Board) :-
+    no_more_free_squares(Board),
+    report_stalemate,
+    !.
+
+% PLAYER
+playHC('x', Board) :-
+    % GET LEGAL MOVE (to get (X,Y))
+    get_legal_move( 'x', X, Y, Board ) ,
+
+    % FILL SQUARE
+    fill_square( X, Y, 'x', Board, NewBoard ) ,
+
+    % SWITCH TO COMPUTER
+    other_player('x', OtherPlayer) ,
+
+    % DISPLAY BOARD
+    display_board( NewBoard ) ,
+
+    % PLAY AGAIN (with updated board and new player)
+    playHC(OtherPlayer, NewBoard).
+
+% COMPUTER
+playHC('o', Board) :-
+    % CHOOSE MOVE
+    choose_move( 'o', X, Y, Board ) ,
+
+    % TELL USER MOVE
+    report_move( 'o', X, Y ) ,
+
+    % FILL SQUARE
+    fill_square( X, Y, 'o', Board, NewBoard ) ,
+
+    % SWITCH TO PLAYER
+    other_player('o', OtherPlayer) ,
+
+    % DISPLAY BOARD
+    display_board( NewBoard ) ,
+
+    % PLAY AGAIN (with updated board and new player)
+    playHC(OtherPlayer, NewBoard).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 5. IMPLEMENTING THE HEURISTICS (20%)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% dumbly choose the next space
+choose_move( _Player, X, Y, Board ) :- empty_square( X, Y, Board ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 5.1 SPOTTING A STALEMATE (10%)
