@@ -151,7 +151,7 @@ playHH(_, Board) :-
     !.
 
 playHH(_, Board) :-
-    no_more_free_squares(Board),
+    \+ possible_win(_, Board),
     report_stalemate,
     !.
 
@@ -191,7 +191,7 @@ playHC(_, Board) :-
     !.
 
 playHC(_, Board) :-
-    no_more_free_squares(Board),
+    \+ possible_win(_, Board),
     report_stalemate,
     !.
 
@@ -236,6 +236,11 @@ playHC('o', Board) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 5. IMPLEMENTING THE HEURISTICS (20%)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+middle_square(2,2).
+corner_square(1,1).
+corner_square(1,3).
+corner_square(3,1).
+corner_square(3,3).
 
 % dumbly choose the next space
 dumbly_choose_move( _Player, X, Y, Board ) :- empty_square( X, Y, Board ).
@@ -257,19 +262,12 @@ choose_move( Player, X, Y, Board ) :-
     !.
 
 % 3. If the middle space is free, then take it
-middle_square(2,2).
-
 choose_move( _Player, X, Y, Board ) :- 
     middle_square(X, Y),
     empty_square(X, Y, Board),
     !.
 
 % 4. If there is a corner space free, then take it
-corner_square(1,1).
-corner_square(1,3).
-corner_square(3,1).
-corner_square(3,3).
-
 choose_move( _Player, X, Y, Board ) :- 
     corner_square(X, Y),
     empty_square(X, Y, Board),
@@ -284,6 +282,13 @@ choose_move( Player, X, Y, Board ) :-
 % 5.1 SPOTTING A STALEMATE (10%)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+possible_win(Player, Board) :-
+    empty_square(X, Y, Board),
+    fill_square( X, Y, Player, Board, NewBoard),
+    (and_the_winner_is(NewBoard, Player) ; 
+    other_player(Player, OtherPlayer),
+    possible_win(OtherPlayer, NewBoard)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 7. TESTING
