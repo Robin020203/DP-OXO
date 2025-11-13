@@ -129,11 +129,7 @@ and_the_winner_is(Board, Player) :-
 % 3.6 RUNNING A GAME FOR 2 HUMAN PLAYERS (20%)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-/*
-We will assume that x is always going to start.
-We will use a predicate called playHH/0 (for “play human vs. human”) 
-to begin a game, defined as follows:
-*/
+
 playHH :- 
     welcome,
     initial_board( Board ),
@@ -148,18 +144,7 @@ no_more_free_squares(Board) :-
     \+ empty_square(_, _, Board).
 
 
-/*
-playHH/2 is recursive. It has two arguments: a player, the first, and a board state, the
-second. For this section of the practical, it has three possibilities:
 
-1. The board represents a winning state, and we have to report the winner. Then we
-are finished.
-2. There are no more free squares on the board, and we have to report a stalemate.
-Again, we are finished.
-3. We can get a (legal) move from the player named in argument 1, fill the square
-he or she gives, switch players, display the board and then play again, with the
-updated board and the new player.
-*/
 playHH(_, Board) :-
     and_the_winner_is(Board, Player),
     report_winner( Player ),
@@ -229,10 +214,10 @@ playHC('x', Board) :-
 
 % COMPUTER
 playHC('o', Board) :-
-    % CHOOSE MOVE
+    % CHOOSE MOVE (heuristic)
     choose_move( 'o', X, Y, Board ) ,
 
-    % TELL USER MOVE
+    % TELL USER THE MOVE
     report_move( 'o', X, Y ) ,
 
     % FILL SQUARE
@@ -253,7 +238,47 @@ playHC('o', Board) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % dumbly choose the next space
-choose_move( _Player, X, Y, Board ) :- empty_square( X, Y, Board ).
+dumbly_choose_move( _Player, X, Y, Board ) :- empty_square( X, Y, Board ).
+
+
+% 1. If there is a winning line for self, then take it
+choose_move( Player, X, Y, Board ) :- 
+    empty_square(X, Y, Board),
+    fill_square( X, Y, Player, Board, NewBoard ),
+    and_the_winner_is(NewBoard, Player),
+    !.
+
+% 2. If there is a winning line for opponent, then block it
+choose_move( Player, X, Y, Board ) :- 
+    empty_square(X, Y, Board),
+    other_player(Player, OtherPlayer),
+    fill_square(X, Y, OtherPlayer, Board, NewBoard),
+    and_the_winner_is(NewBoard, OtherPlayer),
+    !.
+
+% 3. If the middle space is free, then take it
+middle_square(2,2).
+
+choose_move( _Player, X, Y, Board ) :- 
+    middle_square(X, Y),
+    empty_square(X, Y, Board),
+    !.
+
+% 4. If there is a corner space free, then take it
+corner_square(1,1).
+corner_square(1,3).
+corner_square(3,1).
+corner_square(3,3).
+
+choose_move( _Player, X, Y, Board ) :- 
+    corner_square(X, Y),
+    empty_square(X, Y, Board),
+    !.
+    
+% 5. Otherwise, dumbly choose the next available space
+choose_move( Player, X, Y, Board ) :- 
+    dumbly_choose_move( Player, X, Y, Board ).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 5.1 SPOTTING A STALEMATE (10%)
